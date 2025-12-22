@@ -3,28 +3,18 @@ import '../models/order_model.dart';
 import 'api_service.dart';
 
 class OrderService {
-  static Future<List<OrderModel>> getOrders(String token) async {
-    final response = await ApiService.get(
+  static Future<bool> createOrder({
+    required int total,
+    required List<Map<String, dynamic>> items,
+  }) async {
+    final res = await ApiService.post(
       '/orders',
-      token: token,
+      body: {
+        'total': total,
+        'items': items,
+      },
     );
 
-    if (response.statusCode == 200) {
-      final List data = jsonDecode(response.body)['data'];
-      return data.map((e) => OrderModel.fromJson(e)).toList();
-    }
-    return [];
-  }
-
-  static Future<bool> createOrder(
-    int total,
-    String token,
-  ) async {
-    final response = await ApiService.post(
-      '/orders',
-      {'total': total},
-      token: token,
-    );
-    return response.statusCode == 201;
+    return res.statusCode == 200;
   }
 }

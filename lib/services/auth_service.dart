@@ -8,9 +8,8 @@ import '../config/api_config.dart';
 class AuthService {
   static final _storage = FlutterSecureStorage();
   static UserModel? _currentUser;
-
-
-  /// LOGIN
+  static String? get token => _currentUser?.token;
+  static UserModel? get currentUser => _currentUser;
   static Future<UserModel?> login(String email, String password) async {
     try {
       final response = await http.post(
@@ -24,7 +23,6 @@ class AuthService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-
         final userData = data['user'];
 
         _currentUser = UserModel(
@@ -35,7 +33,7 @@ class AuthService {
           token: data['token'],
         );
 
-        // ✅ SIMPAN TOKEN & ROLE
+        // simpan token & role
         await _storage.write(key: 'token', value: data['token']);
         await _storage.write(key: 'role', value: userData['role']);
 
@@ -49,9 +47,7 @@ class AuthService {
     }
   }
 
-  /// =========================
-  /// REGISTER
-  /// =========================
+  
   static Future<bool> register(
     String name,
     String email,
@@ -77,22 +73,20 @@ class AuthService {
       return false;
     }
   }
+  static Future<void> loadUserFromStorage() async {
+    final token = await _storage.read(key: 'token');
+    final role = await _storage.read(key: 'role');
 
-  /// =========================
-  /// GET TOKEN
-  /// =========================
-  static Future<String?> getToken() async {
-    return await _storage.read(key: 'token');
+    if (token != null && role != null) {
+      _currentUser = UserModel(
+        id: 0,
+        name: '',
+        email: '',
+        role: role,
+        token: token,
+      );
+    }
   }
-
-  /// =========================
-  /// CURRENT USER
-  /// =========================
-  static UserModel? get currentUser => _currentUser;
-
-  /// =========================
-  /// LOGOUT
-  /// =========================
   static Future<void> logout() async {
     _currentUser = null;
     await _storage.deleteAll();
