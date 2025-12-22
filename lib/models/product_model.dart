@@ -3,14 +3,14 @@ class ProductModel {
   final String name;
   final int price;
   final int stock;
-  final int? petaniId;
+  final String? description;
 
   ProductModel({
     required this.id,
     required this.name,
     required this.price,
     required this.stock,
-    this.petaniId,
+    this.description,
   });
 
   factory ProductModel.fromJson(Map<String, dynamic> json) {
@@ -19,15 +19,7 @@ class ProductModel {
       name: json['name'],
       price: json['price'],
       stock: json['stock'],
-      petaniId: json['petani_id'],
+      description: json['description'],
     );
   }
-
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'name': name,
-        'price': price,
-        'stock': stock,
-        'petani_id': petaniId,
-      };
 }

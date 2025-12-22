@@ -1,27 +1,16 @@
 import 'dart:convert';
 import '../models/product_model.dart';
 import 'api_service.dart';
+import 'auth_service.dart';
 
 class ProductService {
-  static Future<List<ProductModel>> getProducts() async {
-    final response = await ApiService.get('/products');
-
-    if (response.statusCode == 200) {
-      final List data = jsonDecode(response.body)['data'];
-      return data.map((e) => ProductModel.fromJson(e)).toList();
-    }
-    return [];
-  }
-
-  static Future<bool> addProduct(
-    ProductModel product,
-    String token,
-  ) async {
-    final response = await ApiService.post(
+  static Future<List<ProductModel>> getAllProducts() async {
+    final res = await ApiService.get(
       '/products',
-      product.toJson(),
-      token: token,
+      AuthService.currentUser!.token,
     );
-    return response.statusCode == 201;
+
+    final List data = jsonDecode(res.body);
+    return data.map((e) => ProductModel.fromJson(e)).toList();
   }
 }

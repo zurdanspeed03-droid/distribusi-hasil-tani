@@ -1,8 +1,11 @@
-module.exports = (role) => {
+module.exports = (requiredRole) => {
   return (req, res, next) => {
-    if (req.user.role !== role) {
-      return res.status(403).json({ message: 'Forbidden' })
+    if (!req.user || req.user.role !== requiredRole) {
+      return res.status(403).json({
+        message: 'Forbidden'
+      })
     }
+
     next()
   }
 }

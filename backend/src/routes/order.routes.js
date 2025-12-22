@@ -4,6 +4,7 @@ const orderController = require('../controllers/order.controller')
 const auth = require('../middlewares/auth.middleware')
 const role = require('../middlewares/role.middleware')
 
+// PEMBELI BUAT PESANAN
 router.post(
   '/',
   auth,
@@ -11,6 +12,7 @@ router.post(
   orderController.create
 )
 
+// PEMBELI LIHAT PESANAN SENDIRI
 router.get(
   '/my',
   auth,

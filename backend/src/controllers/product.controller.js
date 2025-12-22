@@ -1,21 +1,65 @@
 const Product = require('../models/product.model')
 
+/**
+ * CREATE PRODUCT (PETANI)
+ * POST /api/products
+ */
 exports.create = (req, res) => {
-  const data = {
-    farmer_id: req.user.id,
-    name: req.body.name,
-    price: req.body.price,
-    stock: req.body.stock,
-    description: req.body.description
+  const { name, price, stock, description } = req.body
+
+  // Validasi input
+  if (!name || !price || !stock) {
+    return res.status(400).json({
+      message: 'Data produk tidak lengkap'
+    })
   }
 
-  Product.create(data, () => {
-    res.json({ message: 'Produk berhasil ditambahkan' })
+  const data = {
+    farmer_id: req.user.id, // dari JWT
+    name,
+    price,
+    stock,
+    description: description || ''
+  }
+
+  Product.create(data, (err) => {
+    if (err) {
+      return res.status(500).json({
+        message: 'Gagal menambahkan produk'
+      })
+    }
+
+    return res.json({
+      message: 'Produk berhasil ditambahkan'
+    })
   })
 }
 
+/**
+ * GET ALL PRODUCTS
+ * GET /api/products
+ */
 exports.getAll = (req, res) => {
-  Product.findAll((err, rows) => {
-    res.json(rows)
-  })
+  // Jika petani → hanya lihat produknya sendiri
+  if (req.user.role === 'petani') {
+    Product.findByFarmer(req.user.id, (err, rows) => {
+      if (err) {
+        return res.status(500).json({
+          message: 'Gagal mengambil produk'
+        })
+      }
+      return res.json(rows)
+    })
+  } 
+  // Jika pembeli → lihat semua produk
+  else {
+    Product.findAll((err, rows) => {
+      if (err) {
+        return res.status(500).json({
+          message: 'Gagal mengambil produk'
+        })
+      }
+      return res.json(rows)
+    })
+  }
 }

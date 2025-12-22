@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       initialRoute: '/login',
       routes: {
-        '/login': (context) => LoginScreen(), // ❌ JANGAN const
+        '/login': (context) => LoginScreen(), 
         '/signup': (context) => SignupScreen(),
         '/petani': (context) => const Scaffold(body: Center(child: Text('Dashboard Petani'))),
         '/pembeli': (context) => const Scaffold(body: Center(child: Text('Dashboard Pembeli'))),
