@@ -15,6 +15,14 @@ class OrderService {
       },
     );
 
-    return res.statusCode == 200;
+    if (res.statusCode == 201) {
+      final data = jsonDecode(res.body);
+      final order = OrderModel.fromJson(data);
+      print(order);
+
+      return true;
+    }
+
+    return false;
   }
 }
