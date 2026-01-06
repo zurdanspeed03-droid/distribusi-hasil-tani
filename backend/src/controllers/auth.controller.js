@@ -3,10 +3,7 @@ const jwt = require('jsonwebtoken')
 const User = require('../models/user.model')
 const { secret } = require('../config/jwt')
 
-/**
- * REGISTER
- * POST /api/auth/register
- */
+/* ================= REGISTER ================= */
 exports.register = (req, res) => {
   const { name, email, password, role } = req.body
 
@@ -15,42 +12,20 @@ exports.register = (req, res) => {
     return res.status(400).json({ message: 'Data tidak lengkap' })
   }
 
-  // Validasi role
-  const allowedRoles = ['petani', 'pembeli']
-  if (!allowedRoles.includes(role)) {
-    return res.status(400).json({ message: 'Role tidak valid' })
-  }
-
-  // Hash password
   const hashedPassword = bcrypt.hashSync(password, 8)
 
   User.create(
-    {
-      name,
-      email,
-      password: hashedPassword,
-      role
-    },
+    { name, email, password: hashedPassword, role },
     (err) => {
       if (err) {
-        // Email duplikat
-        if (err.message && err.message.includes('UNIQUE')) {
-          return res.status(400).json({ message: 'Email sudah terdaftar' })
-        }
-        return res.status(500).json({ message: 'Server error' })
+        return res.status(400).json({ message: 'Email sudah terdaftar' })
       }
-
-      return res.status(201).json({
-        message: 'Register berhasil'
-      })
+      res.status(201).json({ message: 'Register berhasil' })
     }
   )
 }
 
-/**
- * LOGIN
- * POST /api/auth/login
- */
+/* ================= LOGIN ================= */
 exports.login = (req, res) => {
   const { email, password } = req.body
 
@@ -59,27 +34,27 @@ exports.login = (req, res) => {
   }
 
   User.findByEmail(email, (err, user) => {
-    if (err || !user) {
+    if (err) {
+      return res.status(500).json({ message: 'Server error' })
+    }
+
+    if (!user) {
       return res.status(404).json({ message: 'User tidak ditemukan' })
     }
 
-    const isPasswordValid = bcrypt.compareSync(password, user.password)
-    if (!isPasswordValid) {
+    const valid = bcrypt.compareSync(password, user.password)
+    if (!valid) {
       return res.status(401).json({ message: 'Password salah' })
     }
 
-    // Generate JWT
     const token = jwt.sign(
-      {
-        id: user.id,
-        role: user.role
-      },
+      { id: user.id, role: user.role },
       secret,
       { expiresIn: '1d' }
     )
 
-    // RESPONSE FINAL (KONTRAK DENGAN FLUTTER)
-    return res.json({
+    
+    res.json({
       token,
       user: {
         id: user.id,

@@ -4,7 +4,6 @@ const productController = require('../controllers/product.controller')
 const auth = require('../middlewares/auth.middleware')
 const role = require('../middlewares/role.middleware')
 
-// Petani tambah produk
 router.post(
   '/',
   auth,

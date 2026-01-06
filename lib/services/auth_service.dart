@@ -6,10 +6,14 @@ import '../models/user_model.dart';
 import '../config/api_config.dart';
 
 class AuthService {
-  static final _storage = FlutterSecureStorage();
+  static final FlutterSecureStorage _storage = FlutterSecureStorage();
+
   static UserModel? _currentUser;
-  static String? get token => _currentUser?.token;
+
   static UserModel? get currentUser => _currentUser;
+  static String? get token => _currentUser?.token;
+
+  // ========================= LOGIN =========================
   static Future<UserModel?> login(String email, String password) async {
     try {
       final response = await http.post(
@@ -21,19 +25,27 @@ class AuthService {
         }),
       );
 
+      print('LOGIN STATUS: ${response.statusCode}');
+      print('LOGIN BODY: ${response.body}');
+
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
+        final Map<String, dynamic> data = jsonDecode(response.body);
+
+        if (data['user'] == null || data['token'] == null) {
+          print('❌ RESPONSE LOGIN TIDAK SESUAI');
+          return null;
+        }
+
         final userData = data['user'];
 
         _currentUser = UserModel(
-          id: userData['id'],
-          name: userData['name'],
-          email: userData['email'],
-          role: userData['role'],
+          id: userData['id'] ?? 0,
+          name: userData['name'] ?? '',
+          email: userData['email'] ?? '',
+          role: userData['role'] ?? '',
           token: data['token'],
         );
 
-        // simpan token & role
         await _storage.write(key: 'token', value: data['token']);
         await _storage.write(key: 'role', value: userData['role']);
 
@@ -47,8 +59,8 @@ class AuthService {
     }
   }
 
-  
-  static Future<bool> register(
+  // ========================= REGISTER (FIXED) =========================
+  static Future<String?> register(
     String name,
     String email,
     String password,
@@ -66,13 +78,24 @@ class AuthService {
         }),
       );
 
-      return response.statusCode == 200 ||
-          response.statusCode == 201;
+      print('REGISTER STATUS: ${response.statusCode}');
+      print('REGISTER BODY: ${response.body}');
+
+      // ✅ SUKSES
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return null;
+      }
+
+      // ❌ GAGAL → AMBIL PESAN BACKEND
+      final data = jsonDecode(response.body);
+      return data['message'] ?? 'Pendaftaran gagal';
     } catch (e) {
       print('Register error: $e');
-      return false;
+      return 'Tidak bisa terhubung ke server';
     }
   }
+
+  // ========================= LOAD SESSION =========================
   static Future<void> loadUserFromStorage() async {
     final token = await _storage.read(key: 'token');
     final role = await _storage.read(key: 'role');
@@ -87,6 +110,7 @@ class AuthService {
       );
     }
   }
+
   static Future<void> logout() async {
     _currentUser = null;
     await _storage.deleteAll();
